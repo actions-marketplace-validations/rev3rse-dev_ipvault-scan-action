@@ -1,0 +1,79 @@
+name: IP Vault scan
+description: >-
+  Fail the build if a release artifact (APK, AAB, IPA, AAR, ZIP) ships a model in plaintext.
+  No account needed.
+author: rev3rse.dev
+branding:
+  icon: shield
+  color: gray-dark
+
+inputs:
+  path:
+    description: Release artifact to scan, e.g. app/build/outputs/apk/release/app-release.apk
+    required: true
+  version:
+    description: >-
+      ipvault CLI version to download. Its checksums must be pinned in this version of the
+      action (actions/scan/checksums.txt), so pin the action by commit SHA and the binary is
+      pinned with it.
+    default: "0.1.0"
+  min-confidence:
+    description: Hide findings below this level (low, medium, high). Only plaintext models at or above it fail the step.
+    default: low
+  fail-on-plaintext:
+    description: Fail the step when a plaintext model is found. With "false" the result is only reported (outputs, summary, annotations).
+    default: "true"
+  allow-partial:
+    description: Report a partial scan (a size or depth limit hit) as clean if nothing was found, instead of failing.
+    default: "false"
+  max-bytes:
+    description: Total bytes to read out of archives, e.g. 4GiB (the zip-bomb budget).
+    default: 4GiB
+  ipvault-path:
+    description: Use this ipvault binary instead of downloading one (one you built, or for testing the action).
+    default: ""
+  download-repo:
+    description: >-
+      Download the pinned archive from this repository's GitHub release (owner/name) with
+      github-token, instead of the public release: for a private mirror. The checksum still decides.
+    default: ""
+  github-token:
+    description: Token for download-repo. Unused for the public release.
+    default: ${{ github.token }}
+
+outputs:
+  plaintext-found:
+    description: '"true" if a plaintext model at or above min-confidence was found.'
+    value: ${{ steps.scan.outputs.plaintext-found }}
+  exit-code:
+    description: The scanner's exit code. 0 clean, 1 plaintext found, 2 error or incomplete.
+    value: ${{ steps.scan.outputs.exit-code }}
+  report:
+    description: Path to the JSON report.
+    value: ${{ steps.scan.outputs.report }}
+  junit:
+    description: Path to the JUnit XML report.
+    value: ${{ steps.scan.outputs.junit }}
+
+runs:
+  using: composite
+  steps:
+    # Inputs reach the scripts only as environment variables, never interpolated into shell.
+    - id: install
+      shell: bash
+      env:
+        IPVAULT_VERSION: ${{ inputs.version }}
+        IPVAULT_PATH: ${{ inputs.ipvault-path }}
+        IPVAULT_DOWNLOAD_REPO: ${{ inputs.download-repo }}
+        GH_TOKEN: ${{ inputs.github-token }}
+      run: '"$GITHUB_ACTION_PATH/install.sh"'
+    - id: scan
+      shell: bash
+      env:
+        IPVAULT_BIN: ${{ steps.install.outputs.bin }}
+        SCAN_PATH: ${{ inputs.path }}
+        MIN_CONFIDENCE: ${{ inputs.min-confidence }}
+        FAIL_ON_PLAINTEXT: ${{ inputs.fail-on-plaintext }}
+        ALLOW_PARTIAL: ${{ inputs.allow-partial }}
+        MAX_BYTES: ${{ inputs.max-bytes }}
+      run: '"$GITHUB_ACTION_PATH/scan.sh"'
