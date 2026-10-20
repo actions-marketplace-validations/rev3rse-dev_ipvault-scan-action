@@ -16,7 +16,7 @@ inputs:
       ipvault CLI version to download. Its checksums must be pinned in this version of the
       action (actions/scan/checksums.txt), so pin the action by commit SHA and the binary is
       pinned with it.
-    default: "0.2.0"
+    default: "0.2.1"
   min-confidence:
     description: Hide findings below this level (low, medium, high). Only plaintext models at or above it fail the step.
     default: low
