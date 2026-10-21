@@ -1,6 +1,6 @@
 name: IP Vault scan
 description: >-
-  Fail the build if a release artifact (APK, AAB, IPA, AAR, ZIP) ships a model in plaintext.
+  Fail the build if a release artifact (APK, AAB, IPA, AAR, ZIP) ships an uncatalogued model or firmware in plaintext.
   No account needed.
 author: rev3rse.dev
 branding:
@@ -16,12 +16,15 @@ inputs:
       ipvault CLI version to download. Its checksums must be pinned in this version of the
       action (actions/scan/checksums.txt), so pin the action by commit SHA and the binary is
       pinned with it.
-    default: "0.2.2"
+    default: "0.3.0"
   min-confidence:
-    description: Hide findings below this level (low, medium, high). Only plaintext models at or above it fail the step.
-    default: low
+    description: Hide findings below this level (low, medium, high). Uncatalogued models and firmware at or above it fail the step.
+    default: medium
+  security-reports:
+    description: Write SARIF and GitLab SAST reports (CLI 0.3.0 or newer). Upload SARIF separately using the sarif output.
+    default: "false"
   fail-on-plaintext:
-    description: Fail the step when a plaintext model is found. With "false" the result is only reported (outputs, summary, annotations).
+    description: Fail the step when uncatalogued plaintext models or firmware are found. With "false" the result is only reported (outputs, summary, annotations).
     default: "true"
   allow-partial:
     description: Report a partial scan (a size or depth limit hit) as clean if nothing was found, instead of failing.
@@ -43,7 +46,7 @@ inputs:
 
 outputs:
   plaintext-found:
-    description: '"true" if a plaintext model at or above min-confidence was found.'
+    description: '"true" if uncatalogued plaintext models or firmware at or above min-confidence was found.'
     value: ${{ steps.scan.outputs.plaintext-found }}
   exit-code:
     description: The scanner's exit code. 0 clean, 1 plaintext found, 2 error or incomplete.
@@ -51,6 +54,9 @@ outputs:
   report:
     description: Path to the JSON report.
     value: ${{ steps.scan.outputs.report }}
+  sarif:
+    description: Path to SARIF when security-reports is enabled; upload it with github/codeql-action/upload-sarif.
+    value: ${{ steps.scan.outputs.sarif }}
   junit:
     description: Path to the JUnit XML report.
     value: ${{ steps.scan.outputs.junit }}
@@ -76,4 +82,5 @@ runs:
         FAIL_ON_PLAINTEXT: ${{ inputs.fail-on-plaintext }}
         ALLOW_PARTIAL: ${{ inputs.allow-partial }}
         MAX_BYTES: ${{ inputs.max-bytes }}
+        SECURITY_REPORTS: ${{ inputs.security-reports }}
       run: '"$GITHUB_ACTION_PATH/scan.sh"'
