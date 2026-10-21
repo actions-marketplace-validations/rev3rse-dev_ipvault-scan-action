@@ -16,7 +16,7 @@ JSON report are written, and their paths are the step's `junit` and `report` out
 |---|---|---|
 | `path` | required | The artifact to scan |
 | `fail-on-plaintext` | `true` | With `false`, only report: use the `plaintext-found` output to decide |
-| `min-confidence` | `low` | `low`, `medium` or `high` |
+| `min-confidence` | `medium` | `low`, `medium` or `high` |
 | `allow-partial` | `false` | Treat a scan that hit a size or depth limit as clean if nothing was found |
 | `max-bytes` | `4GiB` | Total bytes read out of archives (the zip-bomb budget) |
 | `version` | pinned | The `ipvault` CLI version. It must be pinned in `checksums.txt` |
@@ -24,7 +24,38 @@ JSON report are written, and their paths are the step's `junit` and `report` out
 | `download-repo` | | Download the pinned archive from your private mirror's release (`owner/name`) |
 
 Outputs: `plaintext-found`, `exit-code` (0 clean, 1 plaintext found, 2 error or incomplete),
-`report`, `junit`.
+`report`, `junit`, and `sarif` when security reports are enabled.
+
+## Security reports (CLI 0.3.0+)
+
+Set `security-reports` to `true` to generate SARIF and GitLab SAST. It defaults to `false`
+so uploading security findings remains an explicit workflow choice.
+
+```yaml
+permissions:
+  contents: read
+  security-events: write
+steps:
+  - id: ip
+    uses: rev3rse-dev/ipvault-scan-action@<commit-sha-with-this-change>
+    with:
+      path: app/build/outputs/apk/release/app-release.apk
+      security-reports: "true"
+      fail-on-plaintext: "false"
+  - uses: github/codeql-action/upload-sarif@<pinned-commit-sha>
+    if: always() && steps.ip.outputs.sarif != ''
+    with:
+      sarif_file: ${{ steps.ip.outputs.sarif }}
+      category: ipvault-android-release
+```
+
+The new scanner defaults to medium confidence and excludes SDK/public models from counts and
+failures. Content collections and restricted-font candidates are review items; only uncatalogued
+models/firmware become security findings. JSON schema 2 includes origin and covered-file count.
+The SARIF file describes binary package locations; no source line is fabricated. Source-linked
+alerts require files that exist in the repository. Code scanning availability depends on the
+repository's GitHub plan. The scan itself needs no extra permission; upload needs the permission
+shown above. Use a distinct upload category when scanning multiple artifacts.
 
 ## Supply chain
 
@@ -42,14 +73,14 @@ Outputs: `plaintext-found`, `exit-code` (0 clean, 1 plaintext found, 2 error or 
 
 ## What a clean result means
 
-No known plaintext *model* format was found under the scan limits. It does not mean the package
-is safe. The free scan is model-first. Once your assets are declared with IP Vault, the release
+No actionable known plaintext model/firmware was found under the selected confidence and scan
+limits. It does not mean the package is safe. SDK/public assets remain informational. Once your assets are declared with IP Vault, the release
 action's `verify` checks every declared asset by content, whatever its type: video, map data and
 anything else you seal.
 
 ---
 
 This repository is generated from `actions/scan` in the IP Vault source by `ci/mirror.py`, which also
-checks a published copy byte for byte against the source at the same tag. Changes go to the
+checks a published copy byte for byte against the source at the source commit named by the release. Changes go to the
 source, not here. Pin this action by commit SHA: the commit pins the `ipvault` binary through
 `checksums.txt`.
