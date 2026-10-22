@@ -1,6 +1,6 @@
 name: IP Vault scan
 description: >-
-  Fail the build if a release artifact (APK, AAB, IPA, AAR, ZIP) ships an uncatalogued model or firmware in plaintext.
+  Inventory assets in release packages locally, with an optional build gate for uncatalogued plaintext models or firmware.
   No account needed.
 author: rev3rse.dev
 branding:

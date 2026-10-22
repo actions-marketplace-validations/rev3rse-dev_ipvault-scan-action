@@ -1,27 +1,86 @@
-# IP Vault scan: GitHub Action
+# IP Vault Scan
 
-Fails the build when a release artifact ships a model in plaintext. No account is needed.
+See which models, firmware and content your app ships before deciding what to protect.
+The free scanner reads an APK, AAB, IPA, AAR or ZIP on your CI runner. No account, vault
+credential or artifact upload is needed. The action downloads a pinned scanner binary.
+
+You worked hard to create your content and train your models. IP Vault helps keep those
+assets under your control by making them harder to extract from your app. It encrypts
+selected assets and controls which installations can open them.
+
+**Android supported · iOS coming soon.**
+**Scanning is the first inventory step; protection requires integration.**
+
+## Start with a report-only scan
+
+Add this step **after your existing release build**, in the job that has the package:
 
 ```yaml
-- uses: rev3rse-dev/ipvault-scan-action@<commit-sha>   # pin by commit: it pins the binary too
+- name: Inventory shipped assets
+  id: ip
+  uses: rev3rse-dev/ipvault-scan-action@d42ecce90445468eba1f05c026103826f215a4b4 # v0.3.0
   with:
-    path: app/build/outputs/apk/release/app-release.apk  # APK, AAB, IPA, AAR or ZIP
+    path: app/build/outputs/apk/release/app-release.apk
+    fail-on-plaintext: "false"
 ```
 
-The step fails if any plaintext model is found at or above `min-confidence`. The job summary
-gets a table of findings, and each plaintext model gets an annotation. A JUnit XML report and a
-JSON report are written, and their paths are the step's `junit` and `report` outputs.
+The job summary lists results, with JSON and JUnit report paths in the `report` and `junit`
+outputs. This example reports model and firmware candidates without failing the job. Errors
+and incomplete scans still fail. The action itself defaults to `fail-on-plaintext: "true"`;
+enable that gate after reviewing your inventory.
+
+The default confidence is medium. SDK/public assets are informational and excluded from
+failure counts. Only uncatalogued plaintext models or firmware at the selected confidence
+fail the gate. Content collections and font candidates need human review.
+
+## What a report tells you
+
+This is a summary of a real release scan of FormFit, our own Android fitness app:
+
+| Result | Count | Interpretation |
+|---|---|---|
+| Sealed asset | 1 | The encrypted exercise-video pack was recognized. |
+| Content collection to review | 1 | Six large images remain outside the video pack; review their intended distribution. |
+| Uncatalogued plaintext models / firmware | 0 | No candidates at medium confidence under the scan limits. |
+
+The scan completed with no limits hit; one result below medium confidence was hidden.
+A passing inventory does not establish that every valuable asset is protected or that
+purchase enforcement works. The scan does not establish asset ownership.
+
+[Read the generated sample report](https://ip.rev3rse.dev/ip-vault/formfit/scan.md) ·
+[Inspect the sample JSON](https://ip.rev3rse.dev/ip-vault/formfit/scan.json)
+
+## From inventory to protection
+
+FormFit's exercise guides are part of what makes the app valuable. IP Vault helps it deliver
+that experience without surrendering its library as standalone video files. It ships an
+encrypted pack and opens selected clips inside accepted installations. People still get the
+guidance they expect; extracting a reusable library takes more work.
+The active clip still exists in app memory and can be screen-recorded.
+
+[Watch the contextual FormFit example](https://ip.rev3rse.dev/examples/formfit?utm_source=github-marketplace&utm_medium=marketplace&utm_campaign=first-pilot) for real app
+playback and separate declared-asset package checks. Choose the content or trained model you
+want to keep under your control. The integration guide covers Android version, architecture
+and model-runtime compatibility. The local scan is free; guided
+integration and verification are a separately scoped paid service.
+
+[Run locally or in GitLab CI/CD](https://ip.rev3rse.dev/scan?utm_source=github-marketplace&utm_medium=marketplace&utm_campaign=first-pilot) ·
+[Read the protection integration guide](https://ip.rev3rse.dev/docs/integration)
+
+## Inputs and outputs
 
 | Input | Default | |
 |---|---|---|
 | `path` | required | The artifact to scan |
 | `fail-on-plaintext` | `true` | With `false`, only report: use the `plaintext-found` output to decide |
 | `min-confidence` | `medium` | `low`, `medium` or `high` |
+| `security-reports` | `false` | Write SARIF and GitLab SAST reports; upload separately |
 | `allow-partial` | `false` | Treat a scan that hit a size or depth limit as clean if nothing was found |
 | `max-bytes` | `4GiB` | Total bytes read out of archives (the zip-bomb budget) |
 | `version` | pinned | The `ipvault` CLI version. It must be pinned in `checksums.txt` |
 | `ipvault-path` | | Use your own `ipvault` binary instead of downloading one |
 | `download-repo` | | Download the pinned archive from your private mirror's release (`owner/name`) |
+| `github-token` | job token | Used only for `download-repo`; no extra scan permission is needed |
 
 Outputs: `plaintext-found`, `exit-code` (0 clean, 1 plaintext found, 2 error or incomplete),
 `report`, `junit`, and `sarif` when security reports are enabled.
@@ -37,7 +96,7 @@ permissions:
   security-events: write
 steps:
   - id: ip
-    uses: rev3rse-dev/ipvault-scan-action@<commit-sha-with-this-change>
+    uses: rev3rse-dev/ipvault-scan-action@d42ecce90445468eba1f05c026103826f215a4b4 # v0.3.0
     with:
       path: app/build/outputs/apk/release/app-release.apk
       security-reports: "true"
