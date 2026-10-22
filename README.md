@@ -35,34 +35,37 @@ fail the gate. Content collections and font candidates need human review.
 
 ## What a report tells you
 
-This is a summary of a real release scan of FormFit, our own Android fitness app:
+Our trained handwriting-model reference app has two minified release builds:
 
-| Result | Count | Interpretation |
-|---|---|---|
-| Sealed asset | 1 | The encrypted exercise-video pack was recognized. |
-| Content collection to review | 1 | Six large images remain outside the video pack; review their intended distribution. |
-| Uncatalogued plaintext models / firmware | 0 | No candidates at medium confidence under the scan limits. |
+| Build | Plaintext models | Sealed assets | Interpretation |
+|---|---|---|---|
+| Baseline | 1 | 0 | An ordinary reusable model is present in the APK. |
+| IP Vault | 0 | 1 | The selected model ships sealed; predictions are checked separately. |
 
-The scan completed with no limits hit; one result below medium confidence was hidden.
-A passing inventory does not establish that every valuable asset is protected or that
-purchase enforcement works. The scan does not establish asset ownership.
+Both scans completed without skipped entries or scan limits. Declared-asset byte searches
+catch the baseline and find no declared plaintext model probes in the protected APK.
+A passing inventory is not proof that every valuable asset is protected or that purchase
+enforcement works. The scan does not establish asset ownership.
 
-[Read the generated sample report](https://ip.rev3rse.dev/ip-vault/formfit/scan.md) ·
-[Inspect the sample JSON](https://ip.rev3rse.dev/ip-vault/formfit/scan.json)
+[Inspect the baseline scan](https://ip.rev3rse.dev/ip-vault/trained-model/baseline-scan.json) ·
+[Inspect the protected scan](https://ip.rev3rse.dev/ip-vault/trained-model/scan.json)
 
 ## From inventory to protection
 
-FormFit's exercise guides are part of what makes the app valuable. IP Vault helps it deliver
-that experience without surrendering its library as standalone video files. It ships an
-encrypted pack and opens selected clips inside accepted installations. People still get the
-guidance they expect; extracting a reusable library takes more work.
-The active clip still exists in app memory and can be screen-recorded.
+Start with the [working trained-model case study](https://ip.rev3rse.dev/examples/trained-model?utm_source=github-marketplace&utm_medium=marketplace&utm_campaign=first-pilot).
+The baseline ships reusable weights. The protected app runs the sealed model and matches
+all 20 reference drawings, including offline use after activation. This is an owned
+reference integration using generated strokes, not a general handwriting-accuracy benchmark.
 
-[Watch the contextual FormFit example](https://ip.rev3rse.dev/examples/formfit?utm_source=github-marketplace&utm_medium=marketplace&utm_campaign=first-pilot) for real app
-playback and separate declared-asset package checks. Choose the content or trained model you
-want to keep under your control. The integration guide covers Android version, architecture
-and model-runtime compatibility. The local scan is free; guided
-integration and verification are a separately scoped paid service.
+Two content examples follow:
+
+- [Field Notes lesson library](https://ip.rev3rse.dev/examples/content-library?utm_source=github-marketplace&utm_medium=marketplace&utm_campaign=first-pilot): original photography lessons and diagrams render from a sealed library.
+- [FormFit exercise videos](https://ip.rev3rse.dev/examples/formfit?utm_source=github-marketplace&utm_medium=marketplace&utm_campaign=first-pilot): the existing fitness app plays its encrypted exercise-video bank.
+
+IP Vault aims to put expertise and time back in the way of extraction. Active assets remain
+in process memory, and visible or audible content can be captured. Check runtime and reader
+compatibility before choosing protection. The scanner is free; guided integration and
+verification are a separately scoped paid service.
 
 [Run locally or in GitLab CI/CD](https://ip.rev3rse.dev/scan?utm_source=github-marketplace&utm_medium=marketplace&utm_campaign=first-pilot) ·
 [Read the protection integration guide](https://ip.rev3rse.dev/docs/integration)
