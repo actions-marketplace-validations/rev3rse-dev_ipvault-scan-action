@@ -32,6 +32,8 @@ enable that gate after reviewing your inventory.
 The default confidence is medium. SDK/public assets are informational and excluded from
 failure counts. Only uncatalogued plaintext models or firmware at the selected confidence
 fail the gate. Content collections and font candidates need human review.
+CLI 0.3.1 also reports supported JSON lesson/article libraries as informational content
+candidates, using complete titled text records within its bounded file prefix.
 
 ## What a report tells you
 
