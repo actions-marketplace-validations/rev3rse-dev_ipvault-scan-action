@@ -1,6 +1,6 @@
 name: IP Vault scan
 description: >-
-  Scan release packages locally for exposed models and firmware. Optional build gate; no account or upload needed.
+  Inventory models, firmware and content in release packages. Local scan; no account or upload.
 author: rev3rse.dev
 branding:
   icon: shield

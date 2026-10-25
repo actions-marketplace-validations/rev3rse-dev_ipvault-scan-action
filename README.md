@@ -18,7 +18,7 @@ Add this step **after your existing release build**, in the job that has the pac
 ```yaml
 - name: Inventory shipped assets
   id: ip
-  uses: rev3rse-dev/ipvault-scan-action@d42ecce90445468eba1f05c026103826f215a4b4 # v0.3.0
+  uses: rev3rse-dev/ipvault-scan-action@34e11dd13d9e0425d03d62cbec2adde2657de07d # v0.3.2
   with:
     path: app/build/outputs/apk/release/app-release.apk
     fail-on-plaintext: "false"
@@ -101,7 +101,7 @@ permissions:
   security-events: write
 steps:
   - id: ip
-    uses: rev3rse-dev/ipvault-scan-action@d42ecce90445468eba1f05c026103826f215a4b4 # v0.3.0
+    uses: rev3rse-dev/ipvault-scan-action@34e11dd13d9e0425d03d62cbec2adde2657de07d # v0.3.2
     with:
       path: app/build/outputs/apk/release/app-release.apk
       security-reports: "true"
