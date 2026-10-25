@@ -18,7 +18,7 @@ Add this step **after your existing release build**, in the job that has the pac
 ```yaml
 - name: Inventory shipped assets
   id: ip
-  uses: rev3rse-dev/ipvault-scan-action@d42ecce90445468eba1f05c026103826f215a4b4 # v0.3.0
+  uses: rev3rse-dev/ipvault-scan-action@<commit-sha-of-v0.3.3>
   with:
     path: app/build/outputs/apk/release/app-release.apk
     fail-on-plaintext: "false"
@@ -32,6 +32,8 @@ enable that gate after reviewing your inventory.
 The default confidence is medium. SDK/public assets are informational and excluded from
 failure counts. Only uncatalogued plaintext models or firmware at the selected confidence
 fail the gate. Content collections and font candidates need human review.
+CLI 0.3.2 also reports supported JSON lesson/article libraries as informational content
+candidates, using complete titled text records within its bounded file prefix.
 
 ## What a report tells you
 
@@ -78,7 +80,7 @@ verification are a separately scoped paid service.
 | `fail-on-plaintext` | `true` | With `false`, only report: use the `plaintext-found` output to decide |
 | `min-confidence` | `medium` | `low`, `medium` or `high` |
 | `security-reports` | `false` | Write SARIF and GitLab SAST reports; upload separately |
-| `allow-partial` | `false` | Treat a scan that hit a size or depth limit as clean if nothing was found |
+| `allow-partial` | `false` | Treat a scan with a limit hit or unreadable entry as clean if nothing was found |
 | `max-bytes` | `4GiB` | Total bytes read out of archives (the zip-bomb budget) |
 | `version` | pinned | The `ipvault` CLI version. It must be pinned in `checksums.txt` |
 | `ipvault-path` | | Use your own `ipvault` binary instead of downloading one |
@@ -99,7 +101,7 @@ permissions:
   security-events: write
 steps:
   - id: ip
-    uses: rev3rse-dev/ipvault-scan-action@d42ecce90445468eba1f05c026103826f215a4b4 # v0.3.0
+    uses: rev3rse-dev/ipvault-scan-action@<commit-sha-of-v0.3.3>
     with:
       path: app/build/outputs/apk/release/app-release.apk
       security-reports: "true"
